@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}FFC Cleaning{% endblock %}</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="{% url 'home' %}">{{site_settings.business_name}}</a>
+      <nav>
+        <a href="{% url 'services' %}">Services</a>
+        <a href="{% url 'about' %}">About</a>
+        <a href="{% url 'contact' %}">Contact</a>
+        <a class="btn" href="{% url 'quote' %}">Get a Quote</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© {% now "Y" %} FFC Cleaning. ABN: {{site_settings.abn}}</p>
+    </div>
+  </footer>
+</body>
+</html>

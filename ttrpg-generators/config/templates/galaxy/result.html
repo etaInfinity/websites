@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Galaxy Result{% endblock %}
+{% block content %}
+<h1>Galaxy Result</h1>
+
+<p><strong>Seed:</strong> {{ data.seed }}</p>
+<p><strong>Size group:</strong> {{ data.size_group }}</p>
+<p><strong>Radius:</strong> {{ data.radius_ly }} ly</p>
+<p><strong>Core:</strong> {{ data.core_type }} (mass ~ {{ data.core_mass_solar|floatformat:0 }} M☉)</p>
+
+<hr>
+
+<h2>Galaxy Map</h2>
+  <img
+    src="{% url 'galaxy:map_png' seed=data.seed %}?size_group={{ data.size_group }}&systems={{ data.systems|length }}"
+    alt="Galaxy map"
+    style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px;"
+  >
+
+<hr>
+
+<h2>Star Systems ({{ data.systems|length }})</h2>
+
+{% for s in data.systems %}
+<div style="border:1px solid #ddd;padding:12px;margin:12px 0;border-radius:8px;">
+  <h3>{{ s.name }}</h3>
+  <p>
+    <strong>Position (ly):</strong> x={{ s.x_ly }}, y={{ s.y_ly }}, z={{ s.z_ly }}
+    | <strong>Distance to core:</strong> {{ s.distance_from_core_ly }} ly
+  </p>
+  <p>
+    <strong>Star:</strong> {{ s.star_type }} |
+    Mass {{ s.star_mass_solar }} M☉ |
+    Lum {{ s.luminosity_solar }} L☉ |
+    HZ {{ s.hz_inner_au }}–{{ s.hz_outer_au }} AU
+  </p>
+
+  <img
+    src="{% url 'galaxy:system_map_png' seed=data.seed system_index=forloop.counter0 %}?size_group={{ data.size_group }}&systems={{ data.systems|length }}"
+    alt="System planet map"
+    style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px; margin-top: 8px;"
+  >
+
+  <details>
+    <summary>Planets ({{ s.planets|length }})</summary>
+    <ul>
+      {% for p in s.planets %}
+        <li style="margin:10px 0;">
+          <strong>{% if p.name %}{{ p.name }}{% else %}{{ p.designation }}{% endif %}</strong>
+          {% if p.name %} ({{ p.designation }}){% endif %}
+          — {{ p.type }},
+          orbit {{ p.orbit_au }} AU (e={{ p.eccentricity }})
+          | mass {{ p.mass_earth }} M⊕ | radius {{ p.radius_earth }} R⊕
+          | atm: {{ p.atmosphere }} | water: {{ p.water }}
+          | temp ~ {{ p.temperature_c }}°C
+          {% if p.habitability == "habitable" %}
+            | <strong>HABITABLE</strong>
+          {% elif p.habitability == "possibly" %}
+            | <strong>POSSIBLY HABITABLE</strong> (sealed habitats required)
+          {% else %}
+            | not habitable
+          {% endif %}
+
+          {% if p.habitability_reasons %}
+            <div><em>Why:</em> {{ p.habitability_reasons|slice:":3"|join:", " }}.</div>
+          {% endif %}
+          <div>{{ p.description }}</div>
+        </li>
+      {% endfor %}
+    </ul>
+  </details>
+</div>
+{% endfor %}
+
+<p><a href="{% url 'galaxy:index' %}">Generate another</a></p>
+{% endblock %}

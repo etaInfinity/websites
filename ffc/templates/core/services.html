@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page.hero_title }}{% endblock %}
+
+{% block content %}
+  <h1>{{ page.hero_title }}</h1>
+
+  {% if page.intro %}
+    <div class="services-intro">
+      {{ page.intro|safe }}
+    </div>
+  {% endif %}
+
+  {% if page.services.exists %}
+    <div class="services-list">
+      {% if services %}
+        {% for service in services %}
+          <section class="service">
+            <h2>{{ service.name }}</h2>
+
+            {% if service.description %}
+              <div class="service-description">
+                {{ service.description|safe }}
+              </div>
+            {% endif %}
+
+            {% if service.starting_from %}
+              <p class="service-price">
+                <strong>From:</strong> ${{ service.starting_from }}
+              </p>
+            {% endif %}
+          </section>
+        {% endfor %}
+      {% endif %}
+    </div>
+  {% else %}
+    <p>No services have been published yet.</p>
+  {% endif %}
+{% endblock %}

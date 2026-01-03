@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+  <h1>My Profile</h1>
+
+  <p><strong>Username:</strong> {{ profile_user.username }}</p>
+  <p><strong>Name:</strong> {{ profile_user.get_full_name|default:"—" }}</p>
+  <p><strong>Email:</strong> {{ profile_user.email|default:"—" }}</p>
+
+  <p>
+    <a href="{% url 'public_profile' profile_user.username %}">View my public profile</a>
+  </p>
+{% endblock %}

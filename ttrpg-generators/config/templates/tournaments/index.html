@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}
+Tournaments
+{% endblock %}
+
+{% block content %}
+
+<h1>Tournaments</h1>
+
+{% if tournaments %}
+    <table style="width:100%; border-collapse: collapse; margin-top:16px;">
+        <thead>
+            <tr style="border-bottom:2px solid #000;">
+                <th style="text-align:left; padding:8px;">Name</th>
+                <th style="text-align:left; padding:8px;">Status</th>
+                <th style="text-align:left; padding:8px;">Created</th>
+                <th style="text-align:left; padding:8px;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tournament in tournaments %}
+                <tr style="border-bottom:1px solid #ddd;">
+                    <td style="padding:8px;">
+                        {{ tournament.name }}
+                    </td>
+
+                    <td style="padding:8px;">
+                        {% if tournament.is_locked %}
+                            <strong>In Progress</strong>
+                        {% else %}
+                            <span>Not Started</span>
+                        {% endif %}
+                    </td>
+
+                    <td style="padding:8px;">
+                        {{ tournament.created_at|date:"Y-m-d H:i" }}
+                    </td>
+
+                    <td style="padding:8px;">
+                        <a href="{% url 'tournament_bracket' tournament.id %}">
+                            View Bracket
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No tournaments have been created yet.</p>
+{% endif %}
+
+{% endblock %}

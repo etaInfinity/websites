@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Feral Fox Cleaning{% endblock %}
+{% block content %}
+
+{{page.body|safe}}
+
+<p><a class="btn" href="{% url 'quote' %}">Request a quote</a></p>
+{% endblock %}

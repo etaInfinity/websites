@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}TTRPG Generators {% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <header style="padding:16px;border-bottom:1px solid #ddd">
+        <a href="{% url 'core:home' %}">Home</a> |
+        <a href="{% url 'core:generators' %}">Generators</a> |
+        <a href="{% url 'galaxy:index' %}">Galaxy Generator</a> 
+    </header>
+    
+    <main style="padding:16px;max-width:1000px;margin:0 auto;">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

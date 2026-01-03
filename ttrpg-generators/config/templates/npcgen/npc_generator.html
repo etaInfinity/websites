@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}NPC Data Gen{% endblock %}
+{% block content %}
+<h1>NPC Generator</h1>
+<label>Generator</label>
+<select id="genre">
+    <option value="">--SELECT--</option>
+    {% for g in genres %}
+        <option value="{{g.slug}}">{{g.name}}</option>
+    {% endfor %}
+</select>
+
+<label>Game</label>
+<select id="game" disabled>
+    <option value="">— Select a genre first —</option>
+  </select>
+
+<button id="generate" type="button" disabled>Generate NPC</button>
+
+<div id="result" style="margin-top:1rem;"></div>
+
+<script>
+    const genreSel = document.getElementById("genre");
+    const gameSel  = document.getElementById("game");
+    const genBtn   = document.getElementById("generate");
+    const result   = document.getElementById("result");
+    
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(";").shift();
+      return null;
+    }
+    
+    genreSel.addEventListener("change", async () => {
+      const genre = genreSel.value;
+    
+      gameSel.innerHTML = "";
+      gameSel.disabled = true;
+      genBtn.disabled = true;
+    
+      if (!genre) {
+        gameSel.innerHTML = `<option value="">— Select a genre first —</option>`;
+        return;
+      }
+    
+      const url = "{% url 'npcgen:api_games' %}" + "?genre=" + encodeURIComponent(genre);
+      console.log("Fetching games:", url);
+    
+      const res = await fetch(url);
+      const data = await res.json();
+    
+      const games = data.games || [];
+      if (!games.length) {
+        gameSel.innerHTML = `<option value="">(No games for this genre)</option>`;
+        return;
+      }
+    
+      gameSel.disabled = false;
+      gameSel.innerHTML =
+        `<option value="">— Select —</option>` +
+        games.map(g => `<option value="${g.slug}">${g.name}</option>`).join("");
+    });
+    
+    gameSel.addEventListener("change", () => {
+      genBtn.disabled = !gameSel.value;
+    });
+    
+    genBtn.addEventListener("click", async (event) => {
+        event.preventDefault();
+      
+        const gameEl = document.getElementById("game"); // force re-grab
+        const game = (gameEl?.value || "").trim();
+      
+        // Show it on screen (not just console)
+        result.innerHTML = `Selected game value: "${game}"`;
+      
+        if (!game) return;
+      
+        const res = await fetch("{% url 'npcgen:api_generate' %}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+          },
+          body: JSON.stringify({ game: game }),
+        });
+      
+        const contentType = res.headers.get("content-type") || "";
+        const text = await res.text();
+
+        // If Django returns an HTML error page, show it plainly
+        if (!contentType.includes("application/json")) {
+          result.innerHTML = `<pre>${text}</pre>`;
+          return;
+        }
+
+        const data = JSON.parse(text);
+
+        if (!res.ok) {
+          // Show JSON errors cleanly
+          result.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+          return;
+        }
+
+        const npc = data.npc || {};
+        const gameInfo = data.game || {};
+
+        function escapeHtml(s) {
+          return String(s ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+        }
+
+        const extras = npc.extras || {};
+        const extrasKeys = Object.keys(extras);
+
+        result.innerHTML = `
+          <h2>${escapeHtml(npc.name || "Unnamed NPC")}</h2>
+          <p><strong>System:</strong> ${escapeHtml(gameInfo.name || gameInfo.slug || "")}</p>
+
+          <ul>
+            <li><strong>Species:</strong> ${escapeHtml(npc.species)}</li>
+            <li><strong>Role:</strong> ${escapeHtml(npc.role)}</li>
+            <li><strong>Personality:</strong> ${escapeHtml(npc.personality)}</li>
+            <li><strong>Goal:</strong> ${escapeHtml(npc.goal)}</li>
+            <li><strong>Quirk:</strong> ${escapeHtml(npc.quirk)}</li>
+            <li><strong>Hook:</strong> ${escapeHtml(npc.hook)}</li>
+          </ul>
+
+
+          ${extrasKeys.length ? `
+            <h3>Extras</h3>
+            <ul>
+              ${extrasKeys.map(k => `<li><strong>${escapeHtml(k)}:</strong> ${escapeHtml(extras[k])}</li>`).join("")}
+            </ul>
+          ` : ""}
+        `;
+      });
+</script>
+{% endblock  %}

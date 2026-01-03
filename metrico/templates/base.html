@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Metrico{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <header style="padding:16px;border-bottom:1px solid #ddd">
+      <nav>
+        <a href="/">Home</a>
+      
+        {% if user.is_authenticated %}
+          <a href="{% url 'profile' %}">My Profile</a>
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit">Logout</button>
+          </form>
+        {% else %}
+          <a href="{% url 'login' %}">Login</a>
+        {% endif %}
+      </nav>
+    </header>
+    
+    <main style="padding:16px;max-width:1000px;margin:0 auto;">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

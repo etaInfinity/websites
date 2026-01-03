@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ page.hero_title }}{% endblock %}
+{% block content %}
+<h1>{{ page.hero_title }}</h1>
+<div>{{ page.body|safe }}</div>
+
+{% if page.team_blurb %}
+  <div>{{ page.team_blurb|safe }}</div>
+{% endif %}
+{% endblock %}

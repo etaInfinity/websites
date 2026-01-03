@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Galaxy Generator{% endblock  %}
+{% block content %}
+<h1>Galaxy Generator</h1>
+
+<form method="post" style="display:grid;gap:12px;max-width:520px;">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="sumbit">Generate</button>
+</form>
+{% endblock  %}

@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ tournament.name }} - Bracket
+{% endblock %}
+
+{% block content %}
+
+<style>
+  .grid { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+  .bracket { margin-bottom: 32px; }
+  .round { min-width: 260px; border: 1px solid #ddd; padding: 12px; border-radius: 8px; }
+  .match { border: 1px solid #eee; border-radius: 8px; padding: 10px; margin: 10px 0; }
+  .row { display: flex; justify-content: space-between; gap: 10px; padding: 6px; border-radius: 6px; }
+  .row.winner { font-weight: 700; }
+  button { cursor: pointer; }
+  .meta { font-size: 12px; opacity: 0.8; }
+  .actions { margin: 16px 0; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+</style>
+
+<h1>{{ tournament.name }}</h1>
+
+<div class="actions">
+  <a href="{% url 'tournament_index' %}">← Back to Tournaments</a>
+
+  {% if not tournament.is_locked %}
+    <form method="post" action="{% url 'generate_bracket' tournament.id %}" style="margin:0;">
+      {% csrf_token %}
+      <button type="submit">Generate Bracket</button>
+    </form>
+  {% else %}
+    <span><strong>Bracket locked.</strong></span>
+  {% endif %}
+
+  <a href="{% url 'manage_entries' tournament.id %}">Manage Players</a>
+</div>
+
+<h2>Winners Bracket</h2>
+<div id="winners" class="grid bracket"></div>
+
+<h2>Losers Bracket</h2>
+<div id="losers" class="grid bracket"></div>
+
+<h2>Grand Final</h2>
+<div id="grand" class="grid bracket"></div>
+
+<script>
+  const allMatches = [
+    {% for m in matches %}
+    {
+      id: {{ m.id }},
+      bracket: "{{ m.bracket }}",
+      round: {{ m.round_number }},
+      match: {{ m.match_number }},
+      a: {% if m.a %}{ id: {{ m.a.id }}, player: "{{ m.a.player.name|escapejs }}", faction: "{{ m.a.faction|escapejs }}", detachment: "{{ m.a.detachment|escapejs }}" }{% else %}null{% endif %},
+      b: {% if m.b %}{ id: {{ m.b.id }}, player: "{{ m.b.player.name|escapejs }}", faction: "{{ m.b.faction|escapejs }}", detachment: "{{ m.b.detachment|escapejs }}" }{% else %}null{% endif %},
+      winner_id: {% if m.winner_id %}{{ m.winner_id }}{% else %}null{% endif %},
+      is_complete: {{ m.is_complete|yesno:"true,false" }}
+    },
+    {% endfor %}
+  ];
+
+  function groupByBracketAndRound(matches, bracket) {
+    const byRound = new Map();
+    matches.filter(m => m.bracket === bracket).forEach(m => {
+      if (!byRound.has(m.round)) byRound.set(m.round, []);
+      byRound.get(m.round).push(m);
+    });
+    return [...byRound.entries()]
+      .sort((a,b)=>a[0]-b[0])
+      .map(([round, ms]) => [round, ms.sort((x,y)=>x.match-y.match)]);
+  }
+
+  function entryLine(entry) {
+    if (!entry) return `<span class="meta">BYE / TBD</span>`;
+    return `<div>
+      <div>${entry.player}</div>
+      <div class="meta">${entry.faction} • ${entry.detachment}</div>
+    </div>`;
+  }
+
+  function matchCard(m) {
+    const aWinner = m.winner_id && m.a && m.winner_id === m.a.id;
+    const bWinner = m.winner_id && m.b && m.winner_id === m.b.id;
+
+    const aBtn = m.a && !m.is_complete ? `<button type="button" data-match="${m.id}" data-winner="${m.a.id}">Win</button>` : "";
+    const bBtn = m.b && !m.is_complete ? `<button type="button" data-match="${m.id}" data-winner="${m.b.id}">Win</button>` : "";
+
+    return `
+      <div class="match" data-match-id="${m.id}">
+        <div class="meta">Match ${m.match}</div>
+
+        <div class="row ${aWinner ? "winner" : ""}">
+          ${entryLine(m.a)}
+          ${aBtn}
+        </div>
+
+        <div class="row ${bWinner ? "winner" : ""}">
+          ${entryLine(m.b)}
+          ${bBtn}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderBracket(containerId, bracketCode) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
+    const grouped = groupByBracketAndRound(allMatches, bracketCode);
+
+    grouped.forEach(([round, matches]) => {
+      const col = document.createElement("div");
+      col.className = "round";
+      col.innerHTML = `<h3>Round ${round}</h3>` + matches.map(matchCard).join("");
+      container.appendChild(col);
+    });
+  }
+
+  function renderAll() {
+    renderBracket("winners", "W");
+    renderBracket("losers", "L");
+    renderBracket("grand", "G");
+    wireButtons();
+  }
+
+  function wireButtons() {
+    const csrftoken = getCookie("csrftoken");
+  
+    document.querySelectorAll("button[data-match]").forEach(btn => {
+      btn.onclick = async () => {
+        const matchId = btn.dataset.match;
+        const winnerId = btn.dataset.winner;
+  
+        const form = new FormData();
+        form.append("winner_entry_id", winnerId);
+  
+        const res = await fetch(`/tournament/match/${matchId}/winner/`, {
+          method: "POST",
+          headers: { "X-CSRFToken": csrftoken },
+          body: form
+        });
+  
+        if (!res.ok) {
+          const text = await res.text();
+          alert(`Failed to set winner\nHTTP ${res.status}\n\n${text.slice(0, 500)}`);
+          return;
+        }
+  
+        const data = await res.json();
+        allMatches.length = 0;
+        data.matches.forEach(x => allMatches.push(x));
+        renderAll();
+      };
+    });
+  }
+
+  renderAll();
+
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+    return null;
+  }
+</script>
+
+{% endblock %}

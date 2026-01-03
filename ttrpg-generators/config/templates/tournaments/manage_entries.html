@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Players | {{ tournament.name }}{% endblock %}
+
+{% block content %}
+<h1>{{ tournament.name }} — Players</h1>
+
+<form method="post" style="margin:16px 0; padding:12px; border:1px solid #ddd;">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Add Player</button>
+</form>
+
+<h2>Current Entries ({{ entries|length }})</h2>
+
+{% if entries %}
+  <table style="width:100%; border-collapse:collapse;">
+    <thead>
+      <tr style="border-bottom:2px solid #000;">
+        <th style="text-align:left; padding:8px;">Player</th>
+        <th style="text-align:left; padding:8px;">Faction</th>
+        <th style="text-align:left; padding:8px;">Detachment</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in entries %}
+      <tr style="border-bottom:1px solid #ddd;">
+        <td style="padding:8px;">{{ e.player.name }}</td>
+        <td style="padding:8px;">{{ e.faction }}</td>
+        <td style="padding:8px;">{{ e.detachment }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No players added yet.</p>
+{% endif %}
+
+<p style="margin-top:16px;">
+  <a href="{% url 'tournament_bracket' tournament.id %}">Back to Bracket</a>
+</p>
+{% endblock %}

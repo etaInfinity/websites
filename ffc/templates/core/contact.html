@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Contact - FFC Cleaning{% endblock %}
+{% block content %}
+<h1>Contact</h1>
+<p>Email: {{settings.email}}</p>
+<p>Phone: {{settings.phone}}</p>
+<p>Service area: {{settings.service_area}}</p>
+<p><a class="btn" href="{% url 'quote' %}">Request a quote</a></p>
+{% endblock %}
