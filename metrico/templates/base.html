@@ -26,4 +26,22 @@
         {% block content %}{% endblock %}
     </main>
 </body>
+<footer class="site-footer">
+  <div class="container">
+    {% comment %} <p>© {% now "Y" %} {{ site_settings.business_name }}. ABN: {{ site_settings.abn|default:"—" }}</p>
+
+    <p>
+      id={{ site_settings.id }} |
+      name={{ site_settings.business_name }} |
+      abn={{ site_settings.abn|default:"(empty)" }}
+    </p> {% endcomment %}
+
+    {% load site_settings %}
+
+    {% site_settings as site %}
+
+    <p>© {% now "Y" %} {{ site.business_name }}. ABN: {{ site.abn }}</p>
+
+  </div>
+</footer>
 </html>
