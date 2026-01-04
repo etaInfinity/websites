@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}{{faction.name}} | war4tools{% endblock  %}
+
+{% block content %}
+<p><a href="{% url "factions:list" %}">Back to Factions</a></p>
+
+<h1>{{faction.name}}</h1>
+
+{% if faction.description %}
+    <p>{{faction.description|linebreaks}}</p>
+{% else %}
+    <p><em>No description</em></p>
+{% endif %}
+
+<h2>Units</h2>
+
+{% if units %}
+  <ul>
+    {% for u in units %}
+      <li>
+        <strong>{{ u.name }}</strong> — {{ u.points_cost }} pts —
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No units added yet.</p>
+{% endif %}
+{% endblock  %}

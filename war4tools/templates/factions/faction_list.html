@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Factions | war4tools{% endblock  %}
+
+{% block content %}
+
+<h1>Factions</h1>
+
+{% if factions %}
+<ul>
+    {% for f in factions %}
+    <li>
+        <a href="{% url 'factions:detail' f.slug %}">{{ f.name }}</a>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+    <p>No factions yet.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Header{% endblock %}</title>
+</head>
+<body>
+    
+    <header>
+        <nav>
+            <a href="{% url 'core:home' %}">Home</a>
+            <a href="{% url 'factions:list' %}">Factions</a>
+        </nav>
+        <hr>
+    </header>
+    
+    <main>
+        {% block content %}{% endblock  %}
+    </main>
+
+    <footer>
+        <hr>
+        <small><!-- ADD IN SITE INFORMATION FROM CORE --> war4tools</small>
+    </footer>
+</body>
+</html>
